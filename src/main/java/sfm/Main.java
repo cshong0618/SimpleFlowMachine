@@ -7,14 +7,14 @@ public class Main {
     public static void main(String[] args) throws Exception {
         SimpleFlow<String, String> simpleFlow = new SimpleFlow<>();
 
-        FlowUnit<String, Double> convertToDouble = new FlowUnit<String, Double>() {
+        FlowUnit<String, Double> convertToDouble = new FlowUnit<String, Double>("convertToDouble") {
             @Override
             public Double process(String input) {
                 return Double.parseDouble(input);
             }
         };
 
-        FlowUnit<Double, Double> multiplyBy2 = new FlowUnit<Double, Double>() {
+        FlowUnit<Double, Double> multiplyBy2 = new FlowUnit<Double, Double>("multiplyBy2") {
             @Override
             public Double process(Double input) {
                 return input * 2;
@@ -32,7 +32,15 @@ public class Main {
                 .then(multiplyBy2)
                 .then(convertToString);
 
+        simpleFlow.listFlow()
+                .stream()
+                .reduce((s, s2) -> s + "-->" + s2)
+                .ifPresent(System.out::println);
+
         String output = simpleFlow.run("4.3");
         System.out.println(output);
+
+        String output2 = simpleFlow.startFrom("multiplyBy2", 9999.0);
+        System.out.println(output2);
     }
 }

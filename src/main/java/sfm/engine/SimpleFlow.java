@@ -6,6 +6,8 @@ import sfm.unit.FlowUnit;
 import sfm.unit.exceptions.UnmountableUnitException;
 
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 public class SimpleFlow<I, O> extends Flow<I, O> {
@@ -26,29 +28,37 @@ public class SimpleFlow<I, O> extends Flow<I, O> {
     public Flow start(FlowUnit flowUnit) {
         this.root = flowUnit;
         this.last = this.root;
-        flowUnitMap.put(flowUnit.getClass().getName(), flowUnit);
+        flowUnitMap.put(flowUnit.getName(), flowUnit);
+        System.out.println("Added [" + flowUnit.getName() + "]");
         return this;
     }
 
     public Flow then(FlowUnit flowUnit) throws NoRootException, UnmountableUnitException, NonUniqueFlowUnitException {
         if (last == null) throw new NoRootException();
-        if (flowUnitMap.containsKey(flowUnit.getClass().getName())) throw new NonUniqueFlowUnitException();
+        if (flowUnitMap.containsKey(flowUnit.getName())) throw new NonUniqueFlowUnitException();
         last.mountToThis(flowUnit);
-        flowUnitMap.put(flowUnit.getClass().getName(), flowUnit);
+        flowUnitMap.put(flowUnit.getName(), flowUnit);
         last = last.getChild();
+        System.out.println("Added [" + flowUnit.getName() + "] after [" + flowUnit.getParent().getName() + "]");
         return this;
     }
 
     @Override
     public O run(I input) throws Exception {
-        if (root == null) throw new NoRootException();
+        return startFrom(root.getName(), input);
+    }
+
+    @Override
+    public O startFrom(String flowUnitName, Object input) throws Exception {
+        FlowUnit current = flowUnitMap.getOrDefault(flowUnitName, null);
+        if (current == null) throw new NoRootException();
 
         O output = null;
 
         try {
-            FlowUnit current = root;
             Object currentVal = input;
             while (current != null) {
+                System.out.println("Running [" + current.getName() + "]");
                 currentVal = current.process(currentVal);
                 current = current.getChild();
             }
@@ -61,6 +71,19 @@ public class SimpleFlow<I, O> extends Flow<I, O> {
         }
 
         return output;
+    }
+
+    public List<String> listFlow() throws NoRootException {
+        if (root == null) throw new NoRootException();
+        List<String> flows = new LinkedList<>();
+        FlowUnit current = root;
+
+        while(current != null) {
+            flows.add(current.getName());
+            current = current.getChild();
+        }
+
+        return flows;
     }
 
 

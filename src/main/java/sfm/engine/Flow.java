@@ -10,4 +10,5 @@ public abstract class Flow<I, O> implements IFlow{
     public abstract Flow start(FlowUnit flowUnit);
     public abstract Flow then(FlowUnit flowUnit) throws NoRootException, UnmountableUnitException, NonUniqueFlowUnitException;
     public abstract O run(I input) throws Exception;
+    public abstract O startFrom(String flowUnitName, Object input) throws Exception;
 }
