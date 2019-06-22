@@ -2,6 +2,7 @@ package sfm.engine;
 
 import sfm.engine.exceptions.NoRootException;
 import sfm.engine.exceptions.NonUniqueFlowUnitException;
+import sfm.engine.exceptions.UnmodifiableFlowException;
 import sfm.unit.FlowUnit;
 import sfm.unit.exceptions.UnmountableUnitException;
 
@@ -15,9 +16,11 @@ public class SimpleFlow<I, O> extends Flow<I, O> {
     private FlowUnit last;
     private Map<String, FlowUnit> flowUnitMap;
     private FlowErrorHandler<Exception> errorHandler;
+    private boolean frozen;
 
     public SimpleFlow() {
         flowUnitMap = new HashMap<>();
+        frozen = false;
     }
 
     public SimpleFlow(FlowUnit root) {
@@ -33,7 +36,8 @@ public class SimpleFlow<I, O> extends Flow<I, O> {
         return this;
     }
 
-    public Flow then(FlowUnit flowUnit) throws NoRootException, UnmountableUnitException, NonUniqueFlowUnitException {
+    public Flow then(FlowUnit flowUnit) throws NoRootException, UnmountableUnitException, NonUniqueFlowUnitException, UnmodifiableFlowException {
+        if (frozen) throw new UnmodifiableFlowException();
         if (last == null) throw new NoRootException();
         if (flowUnitMap.containsKey(flowUnit.getName())) throw new NonUniqueFlowUnitException();
         last.mountToThis(flowUnit);
@@ -71,6 +75,11 @@ public class SimpleFlow<I, O> extends Flow<I, O> {
         }
 
         return output;
+    }
+
+    @Override
+    public void done() {
+        frozen = true;
     }
 
     public List<String> listFlow() throws NoRootException {
