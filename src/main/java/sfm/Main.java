@@ -34,7 +34,7 @@ public class Main {
 
         simpleFlow.listFlow()
                 .stream()
-                .reduce((s, s2) -> s + "-->" + s2)
+                .reduce((s, s2) -> s + " --> " + s2)
                 .ifPresent(System.out::println);
 
         String output = simpleFlow.run("4.3");
